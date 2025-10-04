@@ -3,4 +3,5 @@ uvicorn
 nltk
 python-dotenv
 pydantic
-google-generativeai
+google
+google-genai

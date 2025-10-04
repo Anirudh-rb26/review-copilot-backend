@@ -1,5 +1,5 @@
 import os
-from google.generativeai import genai
+from google import genai
 
 class GenerateReviewReply:
     def __init__(self, api_key: str | None = None):
