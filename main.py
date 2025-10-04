@@ -242,6 +242,81 @@ async def get_all_reviews():
     return reviews_db
 
 
+@app.get("/similar-reviews/{review_id}")
+async def get_similar_reviews(review_id: str):
+    """
+    Get 2 similar reviews based on TF-IDF and cosine similarity.
+    """
+    print(f"\n=== Similar Reviews Request for: {review_id} ===")
+    
+    # First, check if the review exists
+    review_exists = False
+    
+    # Check in-memory first
+    if any(r["id"] == review_id for r in reviews_db):
+        review_exists = True
+        print(f"Review {review_id} found in memory")
+    else:
+        # Check in database
+        try:
+            review = db.get_review(review_id)
+            if review:
+                review_exists = True
+                print(f"Review {review_id} found in database")
+        except Exception as e:
+            print(f"Database error checking review: {e}")
+    
+    if not review_exists:
+        print(f"Review {review_id} NOT FOUND")
+        raise HTTPException(
+            status_code=404, 
+            detail=f"Review {review_id} not found"
+        )
+    
+    # Now find similar reviews
+    try:
+        from search_service import find_similar_reviews
+        
+        similar_ids = find_similar_reviews(review_id, db, reviews_db)
+        
+        if not similar_ids:
+            return {
+                "review_id": review_id,
+                "similar_reviews": [],
+                "message": "Not enough reviews to find similar ones"
+            }
+        
+        # Fetch the actual review objects for the similar IDs
+        similar_reviews = []
+        for similar_id in similar_ids:
+            try:
+                # Try database first
+                review = db.get_review(similar_id)
+                if review:
+                    similar_reviews.append(review)
+                else:
+                    # Fallback to in-memory
+                    review = next((r for r in reviews_db if r["id"] == similar_id), None)
+                    if review:
+                        similar_reviews.append(review)
+            except Exception as e:
+                logger.error(f"Error fetching review {similar_id}: {e}")
+        
+        return {
+            "review_id": review_id,
+            "similar_reviews": similar_reviews
+        }
+        
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error finding similar reviews: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Error finding similar reviews: {str(e)}"
+        )
+
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -335,6 +410,19 @@ async def get_reply(review_id: str):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+
+@app.get("/review/{review_id}")
+async def get_review(review_id: str):
+    try: 
+        review = db.get_review(review_id)
+        if review is None:
+            raise HTTPException(status_code=404, detail=f"Review of ID: {review_id} not found")
+        return review
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database Error: {str(e)}")
 
 
 if __name__ == "__main__":

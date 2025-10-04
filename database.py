@@ -212,6 +212,46 @@ class ReviewDatabase:
         except Exception as e:
             print(f"Error retrieving suggested reply: {e}")
             return None
+
+    def get_review(self, review_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Get a complete review by ID.
+        
+        Args:
+            review_id: The ID of the review
+            
+        Returns:
+            Dictionary containing all review information if found, None otherwise
+        """
+        try:
+            conn = self._get_connection()
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                SELECT * FROM reviews
+                WHERE id = ?
+            ''', (review_id,))
+            
+            row = cursor.fetchone()
+            if row:
+                review = {
+                    'id': row['id'],
+                    'location': row['location'],
+                    'rating': row['rating'],
+                    'date': row['date'],
+                    'text': row['text'],
+                    'sentiment': row['sentiment'],
+                    'topics': json.loads(row['topics']),
+                }
+                # Only include suggested_reply if it exists
+                if row['suggested_reply']:
+                    review['suggested_reply'] = row['suggested_reply']
+                
+                return review
+            return None
+        except Exception as e:
+            print(f"Error retrieving review: {e}")
+            return None
     
     def close(self):
         """Close the database connection."""
