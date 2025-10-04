@@ -26,9 +26,12 @@ app = FastAPI(title="Review Management API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://localhost:3000",
         "http://localhost:3000",
+        "https://localhost:3000",
         "http://192.168.0.82:3000",
+        "https://review-copilot-frontend.vercel.app",
+        "https://review-copilot-frontend-git-main-anirudh-jayakumars-projects.vercel.app",
+        "https://review-copilot-frontend-166lyy83x-anirudh-jayakumars-projects.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
