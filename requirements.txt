@@ -1,26 +1,6 @@
-# FastAPI and server
 fastapi
 uvicorn
-python-multipart
-
-# Database
-sqlmodel
-
-# AI/ML
-sentencepiece
-google-generativeai
-google
-
-# Search/ML
-scikit-learn
-numpy
-
-# Utilities
+nltk
 python-dotenv
 pydantic
-pydantic-settings
-nltk
-
-# Testing
-pytest
-httpx
+google-generativeai
