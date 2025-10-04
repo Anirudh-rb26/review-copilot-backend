@@ -7,8 +7,6 @@ python-multipart
 sqlmodel
 
 # AI/ML
-transformers
-torch
 sentencepiece
 google-generativeai
 google
